@@ -1,6 +1,6 @@
 # Edge Compute Thermal Design
 
-A custom active cooling assembly for an NVIDIA Jetson Orin Nano running sustained AI inference, designed to hold package temperature down under continuous load where the stock cooler could not.
+A custom active cooling assembly for an NVIDIA Jetson Orin Nano running sustained AI inference.
 
 <img src="photos/main.png" width="700" alt="Assembled thermal module">
 
@@ -14,7 +14,7 @@ A custom active cooling assembly for an NVIDIA Jetson Orin Nano running sustaine
 | Test duration to steady state | 30 min | 30 min |
 
 Measured at matched power and ambient temperature. Measurement method: [tegrastats / thermocouple at X / IR — fill in].
-
+<!-- 
 ## Problem
 
 The Jetson Orin Nano dissipates 21 W under sustained inference. [One or two sentences: what was the stock cooler doing that made this worth solving? Thermal throttling at a specific clock? Fan noise? Enclosure constraint? Write what actually drove it, not a generic statement about heat being bad.]
@@ -24,7 +24,7 @@ Design constraints:
 - Module preload must stay under NVIDIA's 60 psi limit on the SoC
 - [Envelope constraint, if any: max height, footprint, mounting pattern]
 - [Airflow constraint: intake/exhaust orientation, acoustic limit, anything else]
-
+-->
 ## Thermal design
 
 ### Fin geometry
@@ -59,9 +59,9 @@ Thermal interface material: [TIM part / type, bond line thickness if you control
 
 <img src="photos/heatsink.png" width="700" alt="Bonded-fin heatsink on CNC-machined 6061 base">
 
-- Bonded-fin heatsink on a CNC-machined 6061 aluminum base
+- Heatsink on a CNC-machined 6061 aluminum base
 - Ducted fan path
-- 3D-printed enclosure ([process and material])
+- 3D-printed enclosure (MJF PA12-HP Nylon)
 
 ### Design for manufacturing
 
