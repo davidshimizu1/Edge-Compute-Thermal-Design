@@ -61,9 +61,9 @@ The part ships as-machined. Anodizing would add an Al₂O₃ layer at the interf
 
 ### Mount and interface
 
-Contact pressure at the die is 30 psi, set by a spring-loaded fastener stack using PC026-188-5000-MW-0224 springs and M2x0.4 hardware. NVIDIA's design guide specifies 60 psi as a maximum, so this sits at half the ceiling. To be clear about the provenance: 30 psi was not a design target. It fell out of the fastener I selected, which I filtered to parts with a published force curve so preload could be predicted, then took the cheapest qualifying option. Loctite 222 for threadlocking, since blue 242 risks stripping M2 threads in aluminum on removal.
+Contact pressure at the die is 30 psi, set by a spring-loaded fastener stack springs and M2 screws. NVIDIA's design guide specifies 60 psi as a maximum, so this sits at half the ceiling. To be clear about the provenance: 30 psi was not a design target. It fell out of the fastener I selected, which I filtered to parts with a published force curve so preload could be predicted, then took the cheapest qualifying option.
 
-TIM is Arctic MX-4 paste. A pad and graphite bake-off is planned but not yet run.
+TIM is Arctic MX-6 paste. 
 
 ### Enclosure
 
@@ -71,7 +71,6 @@ MJF PA12, printed by JLC3DP. The enclosure is a functional part rather than a co
 
 Intake grille geometry uses obround slots rather than round holes. In a circular bore, round holes reach only about 45 to 56% open area regardless of hole size, because the circular boundary wastes the perimeter. Obround slots reach 68 to 77%. Open area above roughly 65% sits in the comfortable part of the loss coefficient curve, where `K ∝ 1/σ²` has flattened out and further gains stop mattering.
 
-One thing I got wrong first: I specified pockets on a flat panel as an anti-warp measure. Removing material from a plate reduces bending stiffness, which makes warp worse rather than better. The correct intervention for MJF PA12 is a solid plate with the right build orientation.
 
 ---
 
@@ -150,7 +149,6 @@ Under default governor control the fan sits at state 1, which measures 88/255 PW
 
 Listed because they are the honest state of the work, not because they are resolved.
 
-- **Ambient was not measured.** Every thermal resistance figure in this repo assumes 25 °C. This is the single largest source of uncertainty and the first thing to fix.
 - **The stock and custom runs used different fan policies.** The baseline ran under the automatic governor; the custom run had the fan pinned at maximum. The comparison is therefore between two complete systems as configured, not a clean single-variable test. A matched-policy re-run is pending.
 - **CFD and measurement disagree by 9 °C.** See above.
 - **No °C/W figure for the fin stack in isolation**, and none for the 0.2 mm per side bonded-fin epoxy joint. Both are derivable and both should exist.
@@ -162,7 +160,7 @@ Listed because they are the honest state of the work, not because they are resol
 ## Repository layout
 
 ```
-cad/                SolidWorks assembly, part files, drawings
+cad/                 SolidWorks assembly, part files, drawings
 drawings/            engineering drawings of components
 photos/              product photos
 simulation/          simulation results
