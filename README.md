@@ -163,11 +163,9 @@ Listed because they are the honest state of the work, not because they are resol
 
 ```
 cad/                SolidWorks assembly, part files, drawings
-cfd/                Flow Simulation projects and result exports
-data/               tegrastats logs, parsed CSVs, analysis workbook
-firmware/           ESP32-S3 PI controller (in progress)
-scripts/            log parsing and plotting
-docs/images/        renders, photos, result plots
+drawings/            engineering drawings of components
+photos/              product photos
+simulation/          simulation results
 ```
 
 ---
@@ -179,14 +177,10 @@ docs/images/        renders, photos, result plots
 | Compute | Jetson Orin Nano Super Developer Kit, JetPack 6.2.1, L4T 36.4 |
 | Fan | Noctua NF-A6x25 5V PWM |
 | Fan adapter | MODDIY PICO125-PWM4 |
-| Heatsink base | CNC aluminum, JLC CNC |
-| Fin plates | Laser cut, SendCutSend |
+| Heatsink | CNC aluminum, JLC CNC |
 | Enclosure | MJF PA12, JLC3DP |
-| TIM | Arctic MX-4 |
-| Fin bonding | MG Chemicals 8329TCM thermal epoxy |
-| Fasteners | M2x0.4, PC026-188-5000-MW-0224 springs, Loctite 222 |
-| Power instrumentation | INA260 |
-| Controller | ESP32-S3 |
+| TIM | Arctic MX-6 |
+
 
 ## References
 
