@@ -11,18 +11,29 @@ A custom active cooling solution for an NVIDIA Jetson Orin Nano Super, designed 
 
 Sustained ResNet-50 FP16 inference at the Orin's 25 W power mode, run for 30 minutes to steady state:
 
-| | Stock cooler | Custom solution |
-|---|---|---|
-| Steady-state junction temp | 74.5 °C | **62.0 °C** |
-| Board power (VDD_IN) | 20.9 W | 21.3 W |
-| Thermal resistance, junction to ambient | 2.37 °C/W | **1.74 °C/W** |
-| GPU clock under load | 909 MHz | 1007 MHz |
+| Metric | Stock cooler | Custom — auto fan | Custom — max fan |
+| --- | ---: | ---: | ---: |
+| Fan control | Governor (auto) | Governor (auto) | Manual state 3 |
+| Ambient temperature | 25 °C | 25 °C | 25 °C |
+| Steady-state junction temperature | 76.48 °C | 63.02 °C | **59.03 °C** |
+| Board power (VDD_IN) | 20.85 W | 21.27 W | 21.32 W |
+| Effective thermal resistance, using VDD_IN | 2.47 °C/W | 1.79 °C/W | **1.60 °C/W** |
+| GPU clock under load | 909 MHz | 1006 MHz | **1007 MHz** |
 
-A 12.5 °C reduction in junction temperature and a 27% reduction in thermal resistance, measured while dissipating slightly more power than the baseline. Junction temperature sat 37 °C below the Orin's 99 °C throttle threshold, and the GPU held 1003 MHz or better across all 1776 samples taken under load.
+With automatic fan control, the custom cooler reduced steady-state junction temperature from **76.48°C to 63.02°C**, a **13.46°C improvement** over the stock cooler. Effective thermal resistance decreased by **27.6%**, despite slightly higher board power: 21.27 W versus 20.85 W.
 
-Thermal resistance is computed as `R = (Tj - Tambient) / P`, following NVIDIA's definition in TDG-11127-001.
+At maximum fan speed, junction temperature fell to **59.03°C**, a **17.45°C reduction** from the stock baseline. Effective thermal resistance decreased by **35.4%**, from 2.47°C/W to 1.60°C/W. This additional cooling came with noticeably higher fan noise. The stock cooler was quieter, while the custom cooler was nearly inaudible under automatic fan control. Noise comparisons are based on listening rather than sound-level measurements. I would not run the fan at max for this reason, despite the performance benefits. 
+
+During the logged custom-cooler load test, the GPU maintained **1003 MHz or higher across all 1,776 samples**.
+
+Effective thermal resistance was calculated as:
+
+`R_eff = (T_junction − T_ambient) / VDD_IN`
+
+This calculation uses total board input power, providing a consistent comparison between the tested cooling configurations rather than an isolated chip-to-air thermal resistance.
 
 ![Heat sink configuration comparison](photos/heatsinkcomparison.png)
+Figure 1. Junction temperature during an 18-minute load test at 25°C ambient. Steady-state temperatures were 76.48°C with the stock cooler, 63.02°C with the custom cooler under automatic fan control, and 59.03°C with the custom cooler at maximum fan speed. The dip in the custom auto is due to the inference load restarting during the test.
 ---
 
 ## What this is
