@@ -9,12 +9,12 @@ A custom active cooling solution for an NVIDIA Jetson Orin Nano Super, designed 
 
 ## Result
 
-Sustained ResNet-50 FP16 inference at the Orin's 25 W power mode, run for 30 minutes to steady state:
+Sustained ResNet-50 FP16 inference at the Orin's 25 W power mode, run for 18 minutes on the stock cooler and 30 minutes with each custom configuration to steady state:
 
 | Metric | Stock cooler | Custom — auto fan | Custom — max fan |
 | --- | ---: | ---: | ---: |
 | Fan control | Governor (auto) | Governor (auto) | Manual state 3 |
-| Ambient temperature | 25 °C | 25 °C | 25 °C |
+| Ambient temperature (assumed) | 25 °C | 25 °C | 25 °C |
 | Steady-state junction temperature | 76.48 °C | 63.02 °C | **59.03 °C** |
 | Board power (VDD_IN) | 20.85 W | 21.27 W | 21.32 W |
 | Effective thermal resistance, using VDD_IN | 2.47 °C/W | 1.79 °C/W | **1.60 °C/W** |
@@ -24,7 +24,7 @@ With automatic fan control, the custom cooler reduced steady-state junction temp
 
 At maximum fan speed, junction temperature fell to **59.03°C**, a **17.45°C reduction** from the stock baseline. Effective thermal resistance decreased by **35.4%**, from 2.47°C/W to 1.60°C/W. This additional cooling came with noticeably higher fan noise. The stock cooler was quieter, while the custom cooler was nearly inaudible under automatic fan control. Noise comparisons are based on listening rather than sound-level measurements. I would not run the fan at max for this reason, despite the performance benefits. 
 
-During the logged custom-cooler load test, the GPU maintained **1003 MHz or higher across all 1,776 samples**.
+During the logged custom-cooler load test, the GPU maintained **1003 MHz or higher across all 1,776 samples over both configurations.
 
 Effective thermal resistance was calculated as:
 
@@ -33,7 +33,9 @@ Effective thermal resistance was calculated as:
 This calculation uses total board input power, providing a consistent comparison between the tested cooling configurations rather than an isolated chip-to-air thermal resistance.
 
 ![Heat sink configuration comparison](photos/heatsinkcomparison.png)
+
 Figure 1. Junction temperature during an 18-minute load test at 25°C ambient. Steady-state temperatures were 76.48°C with the stock cooler, 63.02°C with the custom cooler under automatic fan control, and 59.03°C with the custom cooler at maximum fan speed. The dip in the custom auto is due to the inference load restarting during the test.
+
 ---
 
 ## What this is
@@ -82,17 +84,16 @@ Intake grille geometry uses obround slots rather than round holes. In a circular
 
 ## Simulation vs. measurement
 
-CFD predicted 53 °C. Measurement came in at 62 °C.
+| Experimental condition | Measured temperature | Difference from 53°C |
+|---|---:|---:|
+| Custom — automatic fan | 63.02°C | +10.02°C |
+| Custom — maximum fan | 59.03°C | +6.03°C |
 
-That 9 °C gap is currently unreconciled, and I am not calling this model validated until it is. Candidate explanations, none yet confirmed:
+Fin geometry was evaluated using a CFD sweep of 12 configurations: four fin counts, each tested at three centre-to-centre pitches. Base width remained fixed at 55 mm and fin thickness at 1 mm.
 
-- Ambient was assumed at 25 °C rather than measured. Idle junction temperature sat at 44.0 °C at 4.9 W board power with the fan at maximum, and a 19 °C rise at that power is high enough to suggest the real ambient was above 25 °C, or that air is recirculating inside the enclosure.
-- Interface resistance at the die may exceed the model's assumption. The bond line is roughly 4% of total resistance on paper, but that assumes a well-formed joint at the modeled pressure.
-- The fan operating point in the model may not match the installed condition.
+The lowest simulated maximum die temperature was **52.26°C**, obtained with **18 fins at 3.0 mm pitch**, corresponding to a **2.0 mm clear gap**. This was the best configuration tested; the sweep did not establish a global optimum.
 
-Fan curve units are a known trap here. Mixing m³/h and m³/s, or getting the pressure conversion wrong, produces results that are physically impossible without necessarily looking wrong. I verify units explicitly before trusting any Flow Simulation output, and that check is part of why I trust the shape of the fin sweep even while the absolute number is off.
-
-Reconciling this gap is the next piece of work, and the correction itself is a more useful artifact than a model that happened to agree on the first try.
+The 22-fin configurations produced higher temperatures despite their greater surface area. Increased flow resistance is a possible explanation, but confirming the mechanism requires comparing airflow and pressure drop between configurations. Changes in the spaces beside the fin array may also affect flow distribution.
 
 ---
 
