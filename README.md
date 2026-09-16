@@ -1,4 +1,4 @@
-# Thermally-Managed Edge Inference Module
+ # Thermally-Managed Edge Inference Module
 
 A custom active cooling solution for an NVIDIA Jetson Orin Nano Super, designed in SolidWorks, simulated in Flow Simulation, CNC machined, and validated against the stock cooler under sustained AI inference.
 
@@ -22,8 +22,7 @@ A 12.5 °C reduction in junction temperature and a 27% reduction in thermal resi
 
 Thermal resistance is computed as `R = (Tj - Tambient) / P`, following NVIDIA's definition in TDG-11127-001.
 
-![Junction temperature vs time, stock and custom](docs/images/tj_comparison.png)
-
+![Heat sink configuration comparison](photos/heatsinkcomparison.png)
 ---
 
 ## What this is
@@ -47,16 +46,12 @@ The Orin Nano is die-referenced with no integrated heat spreader, so spreading r
 
 Fin count was selected by CFD sweep across 12 configurations. Die maximum temperature bottomed out at 18 fins:
 
-| Fins | Predicted die max |
-|---|---|
-| 16 | 40.38 °C |
-| **18** | **39.73 °C** |
-| 22 | 39.87 °C |
+![Fin configuration comparison](photos/fincomparison.png)
 
 The 22-fin case regressing is the interesting one. Adding fins buys surface area but narrows the channels, and past a point the velocity loss costs more than the area gains. Seeing that tradeoff turn over in simulation is what justified stopping at 18 rather than packing in as many fins as would fit.
-
+<!-- 
 Fins are bonded into through-slots in the base with MG Chemicals 8329TCM thermal epoxy. Slot width opened 0.2 mm per side after supplier DFM review flagged internal-corner interference from a 0.5 mm end mill corner radius. Because the slots are open at both ends, fins can float laterally within the groove, so the clearance spec has to cover worst-case float rather than nominal position.
-
+-->
 The part ships as-machined. Anodizing would add an Al₂O₃ layer at the interface, hardcoat would shift pedestal height and hole diameters, and bead blasting would roughen the surface the TIM has to wet. All three cost performance at the joint that matters most.
 
 ### Mount and interface
@@ -122,7 +117,7 @@ In a second terminal, apply the load:
 `--infStreams=2` is not optional. It sets the power operating point at roughly 21 W, and dropping it moves the comparison to a different load condition.
 
 Steady state is defined as junction temperature drifting less than 0.1 °C/min, with reported values averaged over the final 5 minutes. The run above reached +0.014 °C/min over its last 10 minutes.
-
+<!-- 
 ### Fan control
 
 The Jetson's fan is owned by the kernel thermal governor, which overrides userspace writes to the PWM node. Taking manual control requires putting the bound thermal zone into `user_space` policy first:
@@ -156,7 +151,7 @@ Listed because they are the honest state of the work, not because they are resol
 - **TIM bake-off and acoustic sweep are not yet run.**
 
 ---
-
+-->
 ## Repository layout
 
 ```
