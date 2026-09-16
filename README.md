@@ -1,13 +1,13 @@
  # Thermally-Managed Edge Inference Module
 
-A custom active cooling solution for an NVIDIA Jetson Orin Nano Super, designed in SolidWorks, simulated in Flow Simulation, CNC machined, and validated against the stock cooler under sustained AI inference.
+A custom active cooling solution for an NVIDIA Jetson Orin Nano Super, designed in SolidWorks, simulated in Flow Simulation, CNC machined, and tested against the stock cooler under sustained AI inference.
 
 <img src="photos/main.png" width="700" alt="Assembled thermal module">
 
 
 ---
 
-## Result
+## Results
 
 Sustained ResNet-50 FP16 inference at the Orin's 25 W power mode, run for 18 minutes on the stock cooler and 30 minutes with each custom configuration to steady state:
 
@@ -22,9 +22,7 @@ Sustained ResNet-50 FP16 inference at the Orin's 25 W power mode, run for 18 min
 
 With automatic fan control, the custom cooler reduced steady-state junction temperature from **76.48°C to 63.02°C**, a **13.46°C improvement** over the stock cooler. Effective thermal resistance decreased by **27.6%**, despite slightly higher board power: 21.27 W versus 20.85 W.
 
-At maximum fan speed, junction temperature fell to **59.03°C**, a **17.45°C reduction** from the stock baseline. Effective thermal resistance decreased by **35.4%**, from 2.47°C/W to 1.60°C/W. This additional cooling came with noticeably higher fan noise. The stock cooler was quieter, while the custom cooler was nearly inaudible under automatic fan control. Noise comparisons are based on listening rather than sound-level measurements. I would not run the fan at max for this reason, despite the performance benefits. 
-
-During the logged custom-cooler load test, the GPU maintained **1003 MHz or higher across all 1,776 samples over both configurations.
+At maximum fan speed, junction temperature fell to **59.03°C**, a **17.45°C reduction** from the stock baseline. Effective thermal resistance decreased by **35.4%**, from 2.47°C/W to 1.60°C/W. This additional cooling came with noticeably higher fan noise. The stock cooler was quieter, while the custom cooler was nearly inaudible under automatic fan control. Noise comparisons are based on listening rather than sound-level measurements. Automatic fan control was preferred for normal operation because it was substantially quieter, while maximum fan speed reduced junction temperature by a further 3.99°C.
 
 Effective thermal resistance was calculated as:
 
@@ -34,136 +32,151 @@ This calculation uses total board input power, providing a consistent comparison
 
 ![Heat sink configuration comparison](photos/heatsinkcomparison.png)
 
-Figure 1. Junction temperature during an 18-minute load test at 25°C ambient. Steady-state temperatures were 76.48°C with the stock cooler, 63.02°C with the custom cooler under automatic fan control, and 59.03°C with the custom cooler at maximum fan speed. The dip in the custom auto is due to the inference load restarting during the test.
+*Figure 1. Junction temperature over the first 18 minutes of each load test. The stock run lasted 18 minutes; each custom-cooler run continued to 30 minutes. The early dip in the custom automatic-fan trace coincided with an inference-workload restart. Ambient temperature was assumed to be 25°C.*
 
 ---
 
 ## What this is
 
-An edge AI compute module built around a Jetson Orin Nano Super running at its top power mode to generate a realistic, controllable thermal load. Around that heat source sits a cooling solution I designed end to end:
+A custom cooling assembly for an NVIDIA Jetson Orin Nano Super, designed, simulated, manufactured, and tested against the stock cooler. Sustained AI inference in the 25 W power mode provides a repeatable workload for evaluating thermal performance.
 
-- A CNC aluminum heatsink with a bonded fin stack and a tapered pedestal for the bare die
-- An MJF PA12 enclosure that defines the airflow path from intake through the fin stack to exhaust
-- A spring-loaded mount that sets contact pressure at the die interface
-- A CFD model built in SolidWorks Flow Simulation, used to select fin geometry before any metal was cut
+The assembly includes:
 
-The inference workload is a means to an end. The engineering content is mechanical and thermal: design the part, predict its behavior, build it, instrument it, and find out how close the prediction was.
+- A CNC-machined aluminium heatsink with a tapered pedestal at the bare-die interface
+- An MJF PA12 enclosure that directs airflow from the intake, through the fin array, to the exhaust
+- A spring-loaded mounting system that applies preload at the die interface
+
+A SolidWorks Flow Simulation model was used to compare fin configurations before fabrication. Physical testing then measured operating temperatures, board power, and GPU clock frequency.
+
+The project focuses on the complete mechanical and thermal development process: selecting a geometry, designing for manufacture, assembling the hardware, and comparing simulated performance with experimental results.
 
 ---
 
 ## Design
 
-### Heatsink
+### Preliminary sizing calculations
 
-The Orin Nano is die-referenced with no integrated heat spreader, so spreading resistance is a co-dominant term rather than a rounding error. At a 5 mm base thickness it accounts for roughly 9 °C on its own. The base uses a tapered pedestal to spread heat out of the die footprint before it reaches the fin stack.
+Simplified hand calculations were used to establish a starting geometry before CFD. Fin efficiency was estimated using an assumed convection coefficient to assess fin thickness:
 
-Fin count was selected by CFD sweep across 12 configurations. Die maximum temperature bottomed out at 18 fins:
+$$
+\eta_f = \frac{\tanh(mH)}{mH},
+\qquad
+m = \sqrt{\frac{2h}{kt}}
+$$
 
-![Fin configuration comparison](photos/fincomparison.png)
+Here, $H$ is fin height, $t$ is fin thickness, $k$ is aluminium thermal conductivity, and $h$ is the convection coefficient. Fin height was set to **25 mm** by packaging constraints. A thermal conductivity of **167 W/(m·K)** was used for 6061 aluminium, with an initial estimated convection coefficient of **25 W/(m²·K)**.
 
-The 22-fin case regressing is the interesting one. Adding fins buys surface area but narrows the channels, and past a point the velocity loss costs more than the area gains. Seeing that tradeoff turn over in simulation is what justified stopping at 18 rather than packing in as many fins as would fit.
-<!-- 
-Fins are bonded into through-slots in the base with MG Chemicals 8329TCM thermal epoxy. Slot width opened 0.2 mm per side after supplier DFM review flagged internal-corner interference from a 0.5 mm end mill corner radius. Because the slots are open at both ends, fins can float laterally within the groove, so the clearance spec has to cover worst-case float rather than nominal position.
--->
-The part ships as-machined. Anodizing would add an Al₂O₃ layer at the interface, hardcoat would shift pedestal height and hole diameters, and bead blasting would roughen the surface the TIM has to wet. All three cost performance at the joint that matters most.
+For **1 mm fins**, these inputs give an estimated fin efficiency of **94%**, supporting their use as the starting thickness for the CFD sweep. The approximation assumes a straight, uniform fin with uniform convection and negligible heat loss from its tip.
+
+
+### Heatsink and CFD study
+
+The heatsink contacts the Orin Nano’s exposed die through a thermal interface material. A **5 mm aluminium base with a tapered pedestal** conducts heat from the die footprint into the wider fin array.
+
+Fin geometry was evaluated across **12 configurations**: 16, 18, 20, and 22 fins, each at three centre-to-centre pitches. Base width remained fixed at 55 mm, fin height at 25 mm, fin length at 67.9 mm, and fin thickness at 1 mm. Each configuration was simulated with a **22 W heat load**.
+
+The lowest simulated maximum die temperature was **52.26°C**, obtained with **18 fins at 3.0 mm pitch**, corresponding to a **2.0 mm clear gap**. This configuration was selected for fabrication.
+
+![Simulated temperature versus fin pitch for 12 heatsink configurations](photos/fincomparison.png)
+
+*Figure 2. CFD comparison of 12 fin configurations at a 22 W heat load. The bottom axis shows centre-to-centre fin pitch; the top axis shows clear air gap. The circled point identifies the lowest simulated temperature.*
+
+The 22-fin configurations produced higher temperatures despite their greater surface area. This suggests a tradeoff between heat-transfer area and airflow restriction, although confirming the cause requires comparing flow rates and pressure drops. The selected design was the best configuration tested; the sweep did not establish a global optimum.
+
+The CFD-reported average convection coefficient of approximately **25 W/(m²·K)** was consistent with the initial sizing assumption. Estimated fin efficiency was **94% for 1 mm fins**, compared with **96% for 1.5 mm fins** at the same convection coefficient.
+
+This check supported retaining 1 mm fins. A separate thickness sweep would be needed to assess the combined effects on conduction, channel width, and airflow.
+
+The heatsink was left as-machined to preserve the specified interface dimensions and avoid adding a coating at the die-contact surface.
 
 ### Mount and interface
 
-Contact pressure at the die is 30 psi, set by a spring-loaded fastener stack springs and M2 screws. NVIDIA's design guide specifies 60 psi as a maximum, so this sits at half the ceiling. To be clear about the provenance: 30 psi was not a design target. It fell out of the fastener I selected, which I filtered to parts with a published force curve so preload could be predicted, then took the cheapest qualifying option.
+A spring-loaded mounting assembly with M2 screws provides a **calculated average die-contact pressure of approximately 30 psi**, based on total spring preload divided by die contact area. Published spring force–deflection data were used to estimate preload at the installed compression.
 
-TIM is Arctic MX-6 paste. 
+The pressure resulted from the selected mounting hardware rather than an independently optimized target. Actual pressure distribution depends on alignment and assembly tolerances.
+
+Arctic MX-6 thermal paste forms the interface between the die and the heatsink pedestal.
 
 ### Enclosure
 
-MJF PA12, printed by JLC3DP. The enclosure is a functional part rather than a cover: it defines the duct cross-section, locates the fan, and sets intake and exhaust placement.
+The enclosure was manufactured in MJF PA12 by JLC3DP. It locates the fan and defines the airflow path from the intake, through the fin array, to the exhaust.
 
-Intake grille geometry uses obround slots rather than round holes. In a circular bore, round holes reach only about 45 to 56% open area regardless of hole size, because the circular boundary wastes the perimeter. Obround slots reach 68 to 77%. Open area above roughly 65% sits in the comfortable part of the loss coefficient curve, where `K ∝ 1/σ²` has flattened out and further gains stop mattering.
+The intake grille uses obround slots to increase open area within the available footprint. Open-area fractions calculated from the CAD layouts were approximately **45–56% for the round-hole patterns** and **68–77% for the obround-slot patterns**. These values describe the layouts evaluated, rather than universal limits for either shape.
 
+The obround layout was selected for its greater open area. Pressure loss was not established from open area alone.
 
 ---
 
 ## Simulation vs. measurement
 
-| Experimental condition | Measured temperature | Difference from 53°C |
+| Experimental condition | Measured temperature | Difference from 52.26°C |
 |---|---:|---:|
-| Custom — automatic fan | 63.02°C | +10.02°C |
-| Custom — maximum fan | 59.03°C | +6.03°C |
+| Custom — automatic fan | 63.02°C | +10.76°C |
+| Custom — maximum fan | 59.03°C | +6.77°C |
 
-Fin geometry was evaluated using a CFD sweep of 12 configurations: four fin counts, each tested at three centre-to-centre pitches. Base width remained fixed at 55 mm and fin thickness at 1 mm.
+The selected configuration produced a simulated maximum die temperature of **52.26°C** at a 22 W heat load. Experimental temperatures were higher under both fan settings.
 
-The lowest simulated maximum die temperature was **52.26°C**, obtained with **18 fins at 3.0 mm pitch**, corresponding to a **2.0 mm clear gap**. This was the best configuration tested; the sweep did not establish a global optimum.
-
-The 22-fin configurations produced higher temperatures despite their greater surface area. Increased flow resistance is a possible explanation, but confirming the mechanism requires comparing airflow and pressure drop between configurations. Changes in the spaces beside the fin array may also affect flow distribution.
+These results are not yet a matched validation of the model. Inlet-air temperature was assumed rather than measured, and the installed fan operating point and interface resistance require further verification. The simulated maximum die temperature must also be compared with the specific temperature sensor used in the experimental analysis.
 
 ---
 
 ## Measurement method
 
-Everything below runs on the Jetson itself. The load is a pre-built TensorRT engine, reused unchanged between runs so that engine construction is not a variable.
+Testing was performed on the Jetson using a ResNet-50 FP16 TensorRT engine. The same engine and inference settings were used for all cooling configurations.
+
+### Workload and logging
 
 Build the engine once:
 
 ```bash
-trtexec --onnx=resnet50_b8.onnx --saveEngine=resnet50_b8_fp16.engine --fp16
+/usr/src/tensorrt/bin/trtexec \
+  --onnx=resnet50_b8.onnx \
+  --saveEngine=resnet50_b8_fp16.engine \
+  --fp16
 ```
 
-Confirm the power mode, which must match across every run compared:
+Confirm that the same 25 W power mode is active before each run:
 
 ```bash
 sudo nvpmodel -q
 ```
 
-Start logging at 1 Hz, and let it capture a few minutes of idle before applying load:
+Start logging at one-second intervals, using a separate filename for each configuration. Capture a few minutes of idle operation before starting inference:
 
 ```bash
-sudo tegrastats --interval 1000 --logfile run.txt
+sudo tegrastats --interval 1000 --logfile custom_auto.txt
 ```
 
-In a second terminal, apply the load:
+In a second terminal, run the inference workload:
 
 ```bash
-/usr/src/tensorrt/bin/trtexec --loadEngine=resnet50_b8_fp16.engine \
-  --duration=1800 --infStreams=2
+/usr/src/tensorrt/bin/trtexec \
+  --loadEngine=resnet50_b8_fp16.engine \
+  --duration=1800 \
+  --infStreams=2
 ```
 
-`--infStreams=2` is not optional. It sets the power operating point at roughly 21 W, and dropping it moves the comparison to a different load condition.
+The stock-cooler test ran for 18 minutes (`--duration=1080`); the custom-cooler tests ran for 30 minutes (`--duration=1800`).
 
-Steady state is defined as junction temperature drifting less than 0.1 °C/min, with reported values averaged over the final 5 minutes. The run above reached +0.014 °C/min over its last 10 minutes.
-<!-- 
-### Fan control
+Two inference streams were used consistently across all runs. In this setup, that workload produced approximately 21 W of reported board power. The 25 W power-mode setting does not imply a constant 25 W heat load.
 
-The Jetson's fan is owned by the kernel thermal governor, which overrides userspace writes to the PWM node. Taking manual control requires putting the bound thermal zone into `user_space` policy first:
+### Fan settings and steady state
 
-```bash
-sudo systemctl stop nvfancontrol
-sudo sh -c 'echo user_space > /sys/class/thermal/thermal_zone8/policy'
-sudo sh -c 'echo 3 > /sys/devices/virtual/thermal/cooling_device2/cur_state'
-```
+The stock cooler was tested under automatic fan control. The custom cooler was tested under both automatic control and maximum fan speed.
 
-Fan state, PWM duty, and tachometer feedback read back from:
+Steady state was defined as a junction-temperature drift magnitude below **0.1°C/min**. Reported temperature and board-power values were averaged over the final **five minutes** of each run.
 
-```bash
-cat /sys/devices/virtual/thermal/cooling_device2/cur_state   # 0 to 3
-cat /sys/class/hwmon/hwmon0/pwm1                             # 0 to 255
-cat /sys/class/hwmon/hwmon3/rpm
-```
+Ambient temperature was assumed to be **25°C**, rather than measured. Effective thermal resistance was calculated using this assumption and the reported VDD_IN board power.
 
-Under default governor control the fan sits at state 1, which measures 88/255 PWM and 1070 RPM. That is a third of the fan's rated speed, and it is worth knowing before interpreting any thermal result taken with automatic fan control.
+## Limitations and next steps
+
+- **Measure inlet-air temperature.** The assumed ambient temperature introduces uncertainty into the thermal-resistance estimates.
+- **Reconcile simulation and measurement.** Compare equivalent heat loads, fan operating conditions, and temperature quantities before assessing model accuracy.
+- **Repeat the tests.** Additional runs are needed to quantify repeatability and the effects of mounting and thermal-paste application.
+- **Measure acoustics.** Current noise comparisons are subjective; sound-level measurements would quantify the cooling–noise tradeoff.
 
 ---
 
-## Known gaps
-
-Listed because they are the honest state of the work, not because they are resolved.
-
-- **The stock and custom runs used different fan policies.** The baseline ran under the automatic governor; the custom run had the fan pinned at maximum. The comparison is therefore between two complete systems as configured, not a clean single-variable test. A matched-policy re-run is pending.
-- **CFD and measurement disagree by 9 °C.** See above.
-- **No °C/W figure for the fin stack in isolation**, and none for the 0.2 mm per side bonded-fin epoxy joint. Both are derivable and both should exist.
-- **The PI control loop is not yet implemented.** Fan control is currently manual through sysfs. The ESP32-S3 closed-loop controller with tachometer feedback is the next build item.
-- **TIM bake-off and acoustic sweep are not yet run.**
-
----
--->
 ## Repository layout
 
 ```
