@@ -30,7 +30,7 @@ Effective thermal resistance was calculated as:
 
 This calculation uses total board input power, providing a consistent comparison between the tested cooling configurations rather than an isolated chip-to-air thermal resistance.
 
-![Heat sink configuration comparison](photos/heatsinkcomparison.png)
+![Heat sink configuration comparison](photos/heatsink_comparison.png)
 
 *Figure 1. Junction temperature over the first 18 minutes of each load test. The stock run lasted 18 minutes; each custom-cooler run continued to 30 minutes. The early dip in the custom automatic-fan trace coincided with an inference-workload restart. Ambient temperature was assumed to be 25°C.*
 
